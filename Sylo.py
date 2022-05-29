@@ -15,7 +15,7 @@ class Sylo:
         self.prevParticles = []
         # Calculamos el tamanio del piso
         floor = (w-d)/2
-        self.borders = [(0,0), (0, self.l), (self.w, 0), (self.w, self.l), (floor, self.l), (w-floor, self.l)]
+        self.borders = [(0,0), (0, self.l), (self.w, 0), (self.w, self.l), (floor, 0), (w-floor, 0)]
     
     # |------- W -------|
     # |-----------------| -|
@@ -37,23 +37,24 @@ class Sylo:
         # Primero tenemos que hacer euler de todas las particulas del sistema
         # entonces...
         first = [False for i in range(len(self.particles))]
-
         # Habria que preguntar esto, no se cuanto tiene que durar la sim
         # le mando que ande por 30 segundos
-        sim_duration = timeStep * 150
+        floor = (self.w-self.d)/2
+        sim_duration = timeStep * 15000
         step = 1
         while (timeStep * step) < sim_duration:
             index = 0
+            it = 0
             for p in self.particles:
                 if(first[index]):
                     self.prevParticles[index] = Euler.run(p, timeStep, self.particles, self.l, self.w, self.d)
                     first[index] = False
                 # Nos guardamos la actual para dsp dejarla en el prev
                 aux = self.particles[index]
-
                 # Hacemos Beeman
-                new_part = Beeman.run(p, self.prevParticles[index], timeStep, self.particles, self.prevParticles, self.l, self.w, self.d)
-                if(new_part.y <= self.l+(self.l/10)):
+                new_part = Beeman.run(p, self.prevParticles[index], timeStep, self.particles, self.prevParticles, self.l, self.w, self.d, step, it)
+                it += 1
+                if(new_part.y <= 0-(self.l/10) and new_part.x > floor and new_part.x < self.w - floor):
                     # Ponemos first en True para que haga euler de nuevo
                     first[index] = True
                     # Ubicamos la particula arriba de nuevo donde entre
@@ -63,7 +64,6 @@ class Sylo:
                     self.particles[index] = new_part
                     # Cambiamos la anterior
                     self.prevParticles[index] = aux
-
                 index += 1
 
                 with open("Output.xyz", "a") as file:
@@ -76,9 +76,9 @@ class Sylo:
                         #color, x, y, radio
                         dump += f"{200} {p.x} {p.y} {0} {p.radius}\n"
                     file.write(dump)
+
             
             step += 1
-
 
     # Tienen que entrar la maxima cantidad posible de 
     # particulas que entre en el area del silo
@@ -90,7 +90,8 @@ class Sylo:
 
         first = True
 
-        while time.time() < t_end:
+        # while time.time() < t_end:
+        for i in range(0,10):
 
             # Generamos un radio random
             rand_r = np.random.uniform(0.02, 0.03)

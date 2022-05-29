@@ -18,7 +18,7 @@ class Euler:
     
     def run(particle, timeStep, particles, l , w, d):
         # Calculamos la fuerza ... 
-        force_x, force_y = forceCalc(particle, particles, l, w, d)
+        force_x, force_y = forceCalc(particle, particles, l, w, d, 0, 0, 1)
 
         # Calculamos la velocidad en X ...
         newVelocityX = particle.vx + (timeStep / m) * force_x
@@ -40,7 +40,7 @@ class Euler:
 
 class Beeman:
 
-    def run(particle, prevParticle, timeStep, particles, prevParticles, l , w, d):
+    def run(particle, prevParticle, timeStep, particles, prevParticles, l , w, d, step, it):
 
         # Primero creamos lo que vamos a devolver
         r_x = 0
@@ -55,8 +55,12 @@ class Beeman:
         v0_y = particle.vy
 
         # Calculamos las fuerzas
-        c_fx, c_fy = forceCalc(particle, particles, l, w, d)
-        p_fx, p_fy = forceCalc(prevParticle, prevParticles, l, w, d)
+        c_fx, c_fy = forceCalc(particle, particles, l, w, d, step, it, 0)
+        # if c_fy > 5 or c_fx > 5:
+        #     print(f"x: {particle.x} - y: {particle.y}")
+        #     print(f"fx: {c_fx} - fy: {c_fy}")
+
+        p_fx, p_fy = forceCalc(prevParticle, prevParticles, l, w, d, step, it, 1)
 
         # Pos
         r_x = r0_x + (v0_x * timeStep) + (2/3) * (c_fx/m) * (timeStep**2) - (1/6) * (p_fx/m) * (timeStep**2)
@@ -65,11 +69,11 @@ class Beeman:
         # Pred
         predVx = v0_x + (3/2) * (c_fx/m) * timeStep - 0.5 * (p_fx/m) * timeStep
         predVy = v0_y + (3/2) * (c_fy/m) * timeStep - 0.5 * (p_fy/m) * timeStep    
-        
+
         # Correc
         # CHEQUEAR ESTO
         P = Particle(r_x, r_y, predVx, predVy, particle.radius, m)
-        n_fx, n_fy = forceCalc(P, particles, l, w, d)
+        n_fx, n_fy = forceCalc(P, particles, l, w, d, 0, 0, 1)
         v_x = v0_x + (1/3) * (n_fx/m) * timeStep + (5/6) * (c_fx/m) * timeStep - (1/6) * (p_fx/m) * timeStep
         v_y = v0_y + (1/3) * (n_fy/m) * timeStep + (5/6) * (c_fy/m) * timeStep - (1/6) * (p_fy/m) * timeStep
         
@@ -80,9 +84,12 @@ class Beeman:
 # ---------------------------------------------- #
 
 def calculateFN(particle1, particle2):
-    return -kn * particle1.overlap(particle2)
+    en, et = particle1.colForces(particle2)
+    ret =  -kn * particle1.overlap(particle2)
+    # return sqrt((ret * en[0])**2 + (ret * en[1])**2)
+    return ret
 
-def calculateFT(particle1, particle2):
+def calculateFT(particle1, particle2, type):
 
     # Necesitamos la componente tangencial de la velocidad relativa
     # entonces buscamos los versores tangencial y normal:
@@ -99,15 +106,26 @@ def calculateFT(particle1, particle2):
     # la proyeccion que hicimos
     rel_v_t = sqrt((rel_v * et[0])**2 + (rel_v * et[1])**2)
 
-    return -kt * particle1.overlap(particle2) * rel_v_t
+    # ret = -kt * particle1.overlap(particle2) * rel_v_t
+    if type == "inf" or type == "sup":
+        v = abs(particle1.vx - particle2.vx)
+    elif type == "izq" or type == "der":
+        v = abs(particle1.vy - particle2.vy)
+    else:
+        v = rel_v_t
+    # return sqrt((ret * et[0])**2 + (ret * et[1])**2)
 
-def SPContactForce(particle1, particle2):
+    return  -kt * particle1.overlap(particle2) * v
+
+def SPContactForce(particle1, particle2, type):
 
     # Nos traemos los versores
     en, et = particle1.colForces(particle2)
 
     Fn = calculateFN(particle1, particle2)
-    Ft = calculateFT(particle1, particle2)
+    Ft = calculateFT(particle1, particle2, type)
+
+    print(f"Fn: {Fn} - Ft: {Ft}")
 
     # Proyectamos la fuerza sobre el eje X
     Fx = Fn * en[0] + Ft * et[0]
@@ -117,7 +135,7 @@ def SPContactForce(particle1, particle2):
 
     return Fx, Fy
 
-def forceCalc(current, particles, l, w, d):
+def forceCalc(current, particles, l, w, d, step, it, flag):
 
     # Calculamos el tamanio del piso
     floor = (w-d)/2
@@ -130,39 +148,52 @@ def forceCalc(current, particles, l, w, d):
 
     Fx_tot = 0
     Fy_tot = 0
+    tipo = ""
 
     for other in particles:
         if(current.overlap(other) >= 0):
             if(current.x != other.x and current.y != other.y and current.radius != other.radius):
-                Fx, Fy = SPContactForce(current, other)
+                tipo = "Choque con otra particula"
+                en, et = current.colForces(other)
+                Fx, Fy = SPContactForce(current, other, "particle")
                 Fx_tot += Fx
                 Fy_tot += Fy
 
     if(current.x <= floor or current.x >= w-floor):
-        if(current.overlap(sup) >= 0):
+        if(current.overlap(inf) >= 0):
+            tipo = "Choque con pared inf"
             #print(f"{current.x} - {sup.x} ----- {current.y} - {sup.y}")
-            Fx, Fy = SPContactForce(current, sup)
+            en, et = current.colForces(inf)
+            Fx, Fy = SPContactForce(current, inf, "inf")
             Fx_tot += Fx
             Fy_tot += Fy
-    if(current.overlap(inf) >= 0):
+    if(current.overlap(sup) >= 0):
+        tipo = "Choque con pared sup"
         #print(f"{current.x} - {inf.x} ----- {current.y} - {inf.y}")
-        Fx, Fy = SPContactForce(current, inf)
+        en, et = current.colForces(sup)
+        Fx, Fy = SPContactForce(current, sup, "sup")
         Fx_tot += Fx
         Fy_tot += Fy
     if(current.overlap(der) >= 0):
+        tipo = "Choque con pared der"
         #print(f"{current.x} - {der.x} ----- {current.y} - {der.y}")
-        Fx, Fy = SPContactForce(current, der)
+        en, et = current.colForces(der)
+        Fx, Fy = SPContactForce(current, der, "der")
         Fx_tot += Fx
         Fy_tot += Fy
     if(current.overlap(izq) >= 0):
+        tipo = "Choque con pared izq"
         #print(f"{current.x} - {izq.x} ----- {current.y} - {izq.y}")
-        Fx, Fy = SPContactForce(current, izq)
+        en, et = current.colForces(izq)
+        Fx, Fy = SPContactForce(current, izq, "izq")
         Fx_tot += Fx
         Fy_tot += Fy
-    
-    
     # En el eje y hay que incluir la gravedad
-    Fy_tot += m * 9.8
+    Fy_tot -= m * 9.8
+
+    if flag == 0 and tipo != "":
+        with open("log.txt", "a") as file:
+            file.write(f"step: {step} - it: {it} - choque: {tipo}:\n\tFx: {Fx_tot} - Fy: {Fy_tot} - x: {current.x} - y: {current.y} - en: {en} - et: {et}\n")
     # Devolvemos el modulo de la fuerza
     return Fx_tot, Fy_tot
 
