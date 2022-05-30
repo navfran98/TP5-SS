@@ -1,5 +1,4 @@
-from math import sqrt
-
+from math import sqrt, atan, cos, sin
 
 class Particle:
 
@@ -12,12 +11,14 @@ class Particle:
         self.mass = mass
 
     def getVelocity(self):
-        return sqrt(self.vx**2 + self.vy**2)
+        v = sqrt(self.vx**2 + self.vy**2)
+        return v
 
     # Para comparar contra paredes crear una "particula" de
     # velocidad 0 en el lugar que queramos
     def getRelVelocity(self, other):
-        return abs(self.getVelocity() - other.getVelocity())
+        return self.vx - other.vx, self.vy - other.vy
+
 
     # Para comparar contra paredes crear una "particula" de
     # radio 0 en el lugar que queramos

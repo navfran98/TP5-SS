@@ -40,8 +40,9 @@ class Sylo:
         # Habria que preguntar esto, no se cuanto tiene que durar la sim
         # le mando que ande por 30 segundos
         floor = (self.w-self.d)/2
-        sim_duration = timeStep * 15000
+        sim_duration = timeStep * 70000
         step = 1
+        tOutput = 30
         while (timeStep * step) < sim_duration:
             index = 0
             it = 0
@@ -66,18 +67,18 @@ class Sylo:
                     self.prevParticles[index] = aux
                 index += 1
 
-                with open("Output.xyz", "a") as file:
-                    dump = ""
-                    dump += f"{len(self.particles)+6}\n"
-                    dump += f"Time={timeStep*step}\n"
-                    for bp in self.borders:
-                        dump += f"{100} {bp[0]} {bp[1]} {0} {0.02}\n"
-                    for p in self.particles:
-                        #color, x, y, radio
-                        dump += f"{200} {p.x} {p.y} {0} {p.radius}\n"
-                    file.write(dump)
+                if step % tOutput == 0:
+                    with open("Output.xyz", "a") as file:
+                        dump = ""
+                        dump += f"{len(self.particles)+6}\n"
+                        dump += f"Time={timeStep*step}\n"
+                        for bp in self.borders:
+                            dump += f"{100} {bp[0]} {bp[1]} {0} {0.02}\n"
+                        for p in self.particles:
+                            #color, x, y, radio
+                            dump += f"{200} {p.x} {p.y} {0} {p.radius}\n"
+                        file.write(dump)
 
-            
             step += 1
 
     # Tienen que entrar la maxima cantidad posible de 
@@ -91,7 +92,7 @@ class Sylo:
         first = True
 
         # while time.time() < t_end:
-        for i in range(0,10):
+        for i in range(0,80):
 
             # Generamos un radio random
             rand_r = np.random.uniform(0.02, 0.03)
@@ -109,7 +110,7 @@ class Sylo:
                 inf = Particle(p.x, 0, 0, 0, 0, 0)
                 izq = Particle(0, p.y, 0, 0, 0, 0)
                 der = Particle(self.w, p.y, 0, 0, 0, 0)
-                if(p.overlap(sup) > 0 and p.overlap(inf) > 0 and p.overlap(izq) > 0 and p.overlap(der) > 0):
+                if(p.overlap(sup) >= 0 or p.overlap(inf) >= 0 or p.overlap(izq) >= 0 or p.overlap(der) >= 0):
                     rand_x = np.random.uniform(0, self.w)
                     rand_y = np.random.uniform(0, self.l)
                     p = Particle(rand_x, rand_y, 0, 0, rand_r/2, 0.01)
@@ -121,12 +122,13 @@ class Sylo:
                 first = False
                 
             # Chequeamos que no se choque con otras particulas
+            flag = True
             for other in self.particles:
-                if(p.overlap(other) <= 0):
-                    # Si llegamos aca la particula entra
-                    # entonces la metemos
-                    self.particles.append(p)
-                    break
+                if(p.overlap(other) >= 0):
+                    flag = False
+            if flag:
+                self.particles.append(p)
+                    
         
         with open("Output.xyz", "w") as file:
             dump = ""
@@ -158,7 +160,7 @@ class Sylo:
 
             # Generamos posiciones random
             rand_x = np.random.uniform(0, self.w)
-            rand_y = np.random.uniform(0, self.l)
+            rand_y = np.random.uniform(2*self.l/3, self.l)
 
             p = Particle(rand_x, rand_y, 0, 0, rand_r/2, 0.01)
 
@@ -169,16 +171,18 @@ class Sylo:
                 inf = Particle(p.x, 0, 0, 0, 0, 0)
                 izq = Particle(0, p.y, 0, 0, 0, 0)
                 der = Particle(self.w, p.y, 0, 0, 0, 0)
-                if(p.overlap(sup) > 0 and p.overlap(inf) > 0 and p.overlap(izq) > 0 and p.overlap(der) > 0):
+                if(p.overlap(sup) >= 0 or p.overlap(inf) >= 0 or p.overlap(izq) >= 0 or p.overlap(der) >= 0):
                     rand_x = np.random.uniform(0, self.w)
-                    rand_y = np.random.uniform(0, self.l)
+                    rand_y = np.random.uniform(2*self.l/3, self.l)
                     p = Particle(rand_x, rand_y, 0, 0, rand_r/2, 0.01)
                 else:
-                    break
-
-            # Chequeamos que no se choque con otras particulas
-            for other in self.particles:
-                if(p.overlap(other) <= 0):
-                    # Si llegamos aca la particula entra
-                    # entonces la metemos
-                    return p
+                    flag = True
+                    for other in self.particles:
+                        if(p.overlap(other) >= 0):
+                            flag = False
+                    if flag:
+                        return p
+                    else:
+                        rand_x = np.random.uniform(0, self.w)
+                        rand_y = np.random.uniform(2*self.l/3, self.l)
+                        p = Particle(rand_x, rand_y, 0, 0, rand_r/2, 0.01)

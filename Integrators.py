@@ -86,46 +86,33 @@ class Beeman:
 def calculateFN(particle1, particle2):
     en, et = particle1.colForces(particle2)
     ret =  -kn * particle1.overlap(particle2)
-    # return sqrt((ret * en[0])**2 + (ret * en[1])**2)
     return ret
 
-def calculateFT(particle1, particle2, type):
+def calculateFT(particle1, particle2):
 
     # Necesitamos la componente tangencial de la velocidad relativa
     # entonces buscamos los versores tangencial y normal:
     en, et = particle1.colForces(particle2)
 
-    # Nos traemos el modulo de la velocidad relativa
-    rel_v = particle1.getRelVelocity(particle2)
+    vx, vy = particle1.getRelVelocity(particle2)
 
-    # Como solo nos interesa la componente tangencial hacemos
-    # PROYECCION ECALAR que es que:
-    # Vector x Versor = Componente del Vector sobre ese versor
-    # Pero esto nos da otro vector y nosotros queremos que
-    # Ft sea un numero no un vector ==> sacamos modulo de
-    # la proyeccion que hicimos
-    rel_v_t = sqrt((rel_v * et[0])**2 + (rel_v * et[1])**2)
+    term = vx * et[0] + vy * et[1]
 
-    # ret = -kt * particle1.overlap(particle2) * rel_v_t
-    if type == "inf" or type == "sup":
-        v = abs(particle1.vx - particle2.vx)
-    elif type == "izq" or type == "der":
-        v = abs(particle1.vy - particle2.vy)
-    else:
-        v = rel_v_t
-    # return sqrt((ret * et[0])**2 + (ret * et[1])**2)
+    # rel_v = sqrt((term * et[0])**2 + (term * et[1])**2)
 
-    return  -kt * particle1.overlap(particle2) * v
+    ret = -kt * particle1.overlap(particle2) * term
 
-def SPContactForce(particle1, particle2, type):
+    return ret
+
+def SPContactForce(particle1, particle2):
 
     # Nos traemos los versores
     en, et = particle1.colForces(particle2)
 
     Fn = calculateFN(particle1, particle2)
-    Ft = calculateFT(particle1, particle2, type)
+    Ft = calculateFT(particle1, particle2)
 
-    print(f"Fn: {Fn} - Ft: {Ft}")
+    # print(f"Fn: {Fn} - Ft: {Ft}")
 
     # Proyectamos la fuerza sobre el eje X
     Fx = Fn * en[0] + Ft * et[0]
@@ -155,7 +142,7 @@ def forceCalc(current, particles, l, w, d, step, it, flag):
             if(current.x != other.x and current.y != other.y and current.radius != other.radius):
                 tipo = "Choque con otra particula"
                 en, et = current.colForces(other)
-                Fx, Fy = SPContactForce(current, other, "particle")
+                Fx, Fy = SPContactForce(current, other)
                 Fx_tot += Fx
                 Fy_tot += Fy
 
@@ -164,36 +151,36 @@ def forceCalc(current, particles, l, w, d, step, it, flag):
             tipo = "Choque con pared inf"
             #print(f"{current.x} - {sup.x} ----- {current.y} - {sup.y}")
             en, et = current.colForces(inf)
-            Fx, Fy = SPContactForce(current, inf, "inf")
+            Fx, Fy = SPContactForce(current, inf)
             Fx_tot += Fx
             Fy_tot += Fy
     if(current.overlap(sup) >= 0):
         tipo = "Choque con pared sup"
         #print(f"{current.x} - {inf.x} ----- {current.y} - {inf.y}")
         en, et = current.colForces(sup)
-        Fx, Fy = SPContactForce(current, sup, "sup")
+        Fx, Fy = SPContactForce(current, sup)
         Fx_tot += Fx
         Fy_tot += Fy
     if(current.overlap(der) >= 0):
         tipo = "Choque con pared der"
         #print(f"{current.x} - {der.x} ----- {current.y} - {der.y}")
         en, et = current.colForces(der)
-        Fx, Fy = SPContactForce(current, der, "der")
+        Fx, Fy = SPContactForce(current, der)
         Fx_tot += Fx
         Fy_tot += Fy
     if(current.overlap(izq) >= 0):
         tipo = "Choque con pared izq"
         #print(f"{current.x} - {izq.x} ----- {current.y} - {izq.y}")
         en, et = current.colForces(izq)
-        Fx, Fy = SPContactForce(current, izq, "izq")
+        Fx, Fy = SPContactForce(current, izq)
         Fx_tot += Fx
         Fy_tot += Fy
     # En el eje y hay que incluir la gravedad
     Fy_tot -= m * 9.8
 
-    if flag == 0 and tipo != "":
-        with open("log.txt", "a") as file:
-            file.write(f"step: {step} - it: {it} - choque: {tipo}:\n\tFx: {Fx_tot} - Fy: {Fy_tot} - x: {current.x} - y: {current.y} - en: {en} - et: {et}\n")
+    # if flag == 0 and tipo != "":
+    #     with open("log.txt", "a") as file:
+    #         file.write(f"step: {step} - it: {it} - choque: {tipo}:\n\tFx: {Fx_tot} - Fy: {Fy_tot} - x: {current.x} - y: {current.y} - en: {en} - et: {et}\n")
     # Devolvemos el modulo de la fuerza
     return Fx_tot, Fy_tot
 

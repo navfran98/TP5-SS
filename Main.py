@@ -5,7 +5,7 @@ from Sylo import Sylo
 kn = 10**5
 kt = 2 * kn
 m = 0.01
-timeStep = 0.1 * sqrt(m/kn)
+timeStep = (0.1 * sqrt(m/kn))/3
 s = Sylo(0.4, 1, 0.1)
 
 print("entre al populate")
