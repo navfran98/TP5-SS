@@ -57,10 +57,10 @@ public class Sylo {
             first.add(true);
 
         int step = 1;
-        int n = 500000;
-        int tOutput = 20000;
+        int n = 10000;
+        int tOutput = 10000;
 
-        while((dt*step) < 5) {
+        while((dt*step) < 3) {
             int index = 0;
             for(Particle p : particles) {
                 if(first.get(index)) {
@@ -69,39 +69,13 @@ public class Sylo {
                 }
                 Particle aux = particles.get(index);
                 Particle newParticle = Beeman.run(index, this);
-                double retu = 0;
                 if(newParticle.getX() > w || newParticle.getX() < 0 || newParticle.getY() > l){
-                    System.out.println("Otro error");
-                    System.out.println(newParticle);
-                    System.out.println(aux);
-                    for (int i = 0; i < particles.size(); i++) {
-                        if(index != i){
-                            double over = aux.getOverlap(particles.get(i));
-                            if(over > 0){
-                                System.out.println(particles.get(i) + " - " + over);
-                            }
-                        }
-                    }
-                    retu = 1;
-                
+                    first.set(index, true);
+                    Particle ret = placeNewParticle(seconds);
+                    particles.set(index, ret);
+                    // reincerciones no deseadas
                 }
-                if(newParticle.getY() < 0 && newParticle.getX() < floor && newParticle.getX() > w-floor){
-                    System.out.println("Y negativa");
-                    System.out.println(newParticle);
-                    System.out.println(aux);
-                    for (int i = 0; i < particles.size(); i++) {
-                        if(index != i){
-                            double over = aux.getOverlap(particles.get(i));
-                            if(over > 0){
-                                System.out.println(particles.get(i) + " - " + over);
-                            }
-                        }
-                    }
-                    retu = 1;
-                }
-                if(retu == 1)
-                    return; 
-                if(newParticle.y <= -l/10 && newParticle.x > floor && newParticle.x < w - floor) {
+                else if(newParticle.y <= -l/10) {
                     first.set(index, true);
                     Particle ret = placeNewParticle(seconds);
                     particles.set(index, ret);
@@ -132,7 +106,6 @@ public class Sylo {
         double y_high = l;
         double x_high = w;
         boolean first = true;
-        int i = 0;
         while((currentTime = System.currentTimeMillis()) < end) {
 
             double rand_r = (Math.random() * (radiusHigh-radiusLow)) + radiusLow;
@@ -171,9 +144,7 @@ public class Sylo {
                 if(flag)
                     particles.add(p);
             }
-            i++;
-//            currentTime = System.currentTimeMillis();
-            
+            i++;            
         }
         for(Particle part : particles)
             prevParticles.add(Euler.run(part, this));
@@ -181,30 +152,6 @@ public class Sylo {
         
         OutputParser.writeUniverse(particles, borders,0);
         System.out.println("Finalizo el populate - " + particles.size() + " Particulas");
-        // double r = 0.01;
-        // Particle p1 = new Particle(w - 2 * r, r, 0, 0, r, mass);
-        // Particle p2 = new Particle(w - 2 * 0.03, l- 10*r, 0, 0, 0.04, mass);
-        // Particle p3 = new Particle(w - 2 * r, l- 25*r, 0, 0, r, mass);
-        // Particle p4 = new Particle(w -  4 *r, l-20*r, 0, 0, r, mass);
-        // Particle p5 = new Particle(w - 4 * r , 2*r, 0, 0, r, mass);
-        // Particle p6 = new Particle(w - 2 * r, 4*r, 0, 0, r, mass);
-
-        // particles.add(p1);
-        // particles.add(p2);
-        // particles.add(p3);
-        // particles.add(p4);
-        // particles.add(p5);
-        // particles.add(p6);
-
-        
-        // prevParticles.add(Euler.run(p1, this));
-        // prevParticles.add(Euler.run(p2, this));
-        // prevParticles.add(Euler.run(p3, this));
-        // prevParticles.add(Euler.run(p4, this));
-        // prevParticles.add(Euler.run(p5, this));
-        // prevParticles.add(Euler.run(p6, this));
-
-        // OutputParser.writeUniverse(particles, borders,0);
     }
 
     public Particle placeNewParticle(int seconds) {
