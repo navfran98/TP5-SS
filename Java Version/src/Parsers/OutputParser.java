@@ -1,13 +1,12 @@
 package Parsers;
 
-import Models.Particle;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import Models.*;
 import java.util.List;
 
 public class OutputParser {

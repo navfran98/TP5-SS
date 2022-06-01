@@ -1,5 +1,7 @@
 package Models;
 
+import java.util.List;
+
 public class Force {
 
     // Variables
@@ -35,7 +37,7 @@ public class Force {
         return ret;
     }
 
-    public static Pair<Double, Double> calculateForce(Particle current, Sylo sylo){
+    public static Pair<Double, Double> calculateForce(Particle current, Sylo sylo, int flag, int index){
         // Creamos las paredes
         Particle sup = new Particle(current.x, sylo.l, 0, 0, 0, 0);
         Particle inf = new Particle(current.x, 0, 0, 0, 0, 0);
@@ -44,11 +46,16 @@ public class Force {
 
         double Fx_tot = 0, Fy_tot = 0;
         Pair<Double, Double> forces;
+        List<Particle> list;
+        if(flag == 0)
+            list = sylo.prevParticles;
+        else
+            list = sylo.particles;
 
-        for(Particle other : sylo.particles){
-            if(!current.equals(other)){
-                if(current.getOverlap(other) >= 0){
-//                    System.out.println(current.getRadius() + " - " + other.getRadius() + " - " + current.getOverlap(other));
+        for (int i = 0; i < list.size(); i++) {
+            Particle other = list.get(i);
+            if(current.getOverlap(other) > 0){
+                if(index != i){
                     forces = singleParticleContactForce(current, other);
                     Fx_tot += forces.first;
                     Fy_tot += forces.second;
@@ -56,27 +63,27 @@ public class Force {
             }
         }
 
-        if(current.x <= sylo.floor || current.x >= sylo.w-sylo.floor){
-            if(current.getOverlap(inf) >= 0){
+        if(current.x <= sylo.floor + current.radius || current.x >= sylo.w-sylo.floor-current.radius){
+            if(current.getOverlap(inf) > 0){
                 forces = singleParticleContactForce(current, inf);
                 Fx_tot += forces.first;
                 Fy_tot += forces.second;
             }
         }
 
-        if(current.getOverlap(sup) >= 0){
+        if(current.getOverlap(sup) > 0){
             forces = singleParticleContactForce(current, sup);
             Fx_tot += forces.first;
             Fy_tot += forces.second;
         }
 
-        if(current.getOverlap(izq) >= 0){
+        if(current.getOverlap(izq) > 0){
             forces = singleParticleContactForce(current, izq);
             Fx_tot += forces.first;
             Fy_tot += forces.second;
         }
 
-        if(current.getOverlap(der) >= 0){
+        if(current.getOverlap(der) > 0){
             forces = singleParticleContactForce(current, der);
             Fx_tot += forces.first;
             Fy_tot += forces.second;

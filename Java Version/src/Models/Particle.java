@@ -87,4 +87,11 @@ public class Particle {
                 && Double.compare(this.radius, p.radius) == 0
                 && Double.compare(this.mass, p.mass) == 0;
     }
+
+
+    @Override
+    public String toString() {
+        String s = "X: " + this.x + " - Y: " + this.y + " - R: " + this.radius;
+        return s;
+    }
 }

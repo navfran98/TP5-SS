@@ -3,7 +3,8 @@ package Models;
 public class Euler {
 
     public static Particle run(Particle p, Sylo sylo) {
-        Pair<Double, Double> forces = Force.calculateForce(p, sylo);
+        int index = sylo.particles.indexOf(p);
+        Pair<Double, Double> forces = Force.calculateForce(p, sylo, 1, index);
 
         double newVx = p.vx + (sylo.dt/p.mass)* forces.first;
         double newVy = p.vy + (sylo.dt/p.mass)* forces.second;
