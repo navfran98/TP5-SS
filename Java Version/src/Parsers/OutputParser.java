@@ -11,7 +11,8 @@ import java.util.List;
 
 public class OutputParser {
 
-    private static final String fn = "output.xyz";
+    private static boolean firstEj1 = true;
+    private static final String fn = "XYZ/output.xyz";
 
     public static void writeUniverse(List<Particle> particles, List<Particle> borders, double t) {
         try {
@@ -21,6 +22,7 @@ public class OutputParser {
                 dump.append(p.getX()).append(" ")
                         .append(p.getY()).append(" ")
                         .append(0).append(" ")
+                        .append(p.getVelocity()).append(" ")
                         .append(p.getRadius()).append("\n");
             }
             for (Particle p : particles) {
@@ -28,9 +30,55 @@ public class OutputParser {
                 dump.append(p.getX()).append(" ")
                         .append(p.getY()).append(" ")
                         .append(0).append(" ")
+                        .append(p.getVelocity()).append(" ")
                         .append(p.getRadius()).append("\n");
             }
             appendToEndOfFile(fn,dump.toString());
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    // public static void parseEj1(double dt, int count, String filename){
+    //     try {
+    //         StringBuilder dump = new StringBuilder("");
+    //         if(firstEj1 == true){
+    //             dump.append("Dt,N\n");
+    //             firstEj1 = false;
+    //         }
+    //         dump.append(dt).append(",").append(count).append("\n");
+    //         appendToEndOfFile(filename,dump.toString());
+    //     } catch (IOException e) {
+    //         System.out.println("An error occurred.");
+    //         e.printStackTrace();
+    //     }
+    // }
+
+    public static void parseEj1(double dt, int count, String filename){
+        try {
+            StringBuilder dump = new StringBuilder("");
+            if(firstEj1 == true){
+                dump.append("Dt,N\n");
+                firstEj1 = false;
+            }
+            dump.append(dt).append(",").append(count).append("\n");
+            appendToEndOfFile(filename,dump.toString());
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    public static void parseEj2(double dt, double ke, String filename){
+        try {
+            StringBuilder dump = new StringBuilder("");
+            if(firstEj1 == true){
+                dump.append("Dt,KE\n");
+                firstEj1 = false;
+            }
+            dump.append(dt).append(",").append(ke).append("\n");
+            appendToEndOfFile(filename,dump.toString());
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
@@ -46,6 +94,16 @@ public class OutputParser {
 
     public static void createCleanUniverseFile(String fn) {
         Path fileToDeletePath = Paths.get(fn);
+        try {
+            Files.deleteIfExists(fileToDeletePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void createCleanCSVFile(String fn) {
+        Path fileToDeletePath = Paths.get(fn);
+        firstEj1 = true;
         try {
             Files.deleteIfExists(fileToDeletePath);
         } catch (IOException e) {

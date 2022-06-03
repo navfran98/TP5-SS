@@ -5,8 +5,8 @@ import java.util.List;
 public class Force {
 
     // Variables
-    static double kn = 10e5;
-    static double kt = 2 * kn;
+    static double kn;
+    static double kt;
     static double g = 9.8;
 
     // Metodos
@@ -39,6 +39,8 @@ public class Force {
 
     public static Pair<Double, Double> calculateForce(Particle current, Sylo sylo, int flag, int index){
         // Creamos las paredes
+        kt = sylo.kt;
+        kn = sylo.kn;
         Particle sup = new Particle(current.x, sylo.l, 0, 0, 0, 0);
         Particle inf = new Particle(current.x, 0, 0, 0, 0, 0);
         Particle izq = new Particle(0, current.y, 0, 0, 0, 0);

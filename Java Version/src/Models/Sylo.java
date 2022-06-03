@@ -17,12 +17,16 @@ public class Sylo {
     double floor;
     double dt;
     double mass;
+    double kn;
+    double kt;
     List<Particle> particles;
     List<Particle> prevParticles;
     List<Particle> borders;
 
     // Constructor
-    public Sylo(double l, double w, double d, double dt) {
+    public Sylo(double l, double w, double d, double dt, double ktm) {
+        this.kn = 10e5;
+        this.kt = ktm * this.kn;
         this.l = l;
         this.w = w;
         this.d = d;
@@ -46,10 +50,7 @@ public class Sylo {
     }
 
     // Metodos
-    public void simulate(int seconds) {
-
-        long currentTime= System.currentTimeMillis();
-        long end = currentTime + (seconds * 1000);
+    public void simulateUniverse(int seconds) {
 
         List<Boolean> first = new ArrayList<>();
 
@@ -57,8 +58,8 @@ public class Sylo {
             first.add(true);
 
         int step = 1;
-        int n = 10000;
-        int tOutput = 10000;
+        int n = 50000;
+        int tOutput = 1000;
 
         while((dt*step) < 3) {
             int index = 0;
@@ -84,15 +85,120 @@ public class Sylo {
                     prevParticles.set(index, aux);
                 }
                 index ++;
-                currentTime = System.currentTimeMillis();
                 if(step % tOutput == 0) {
-                    OutputParser.writeUniverse(particles, borders, currentTime);
+                    OutputParser.writeUniverse(particles, borders, step*dt);
                 }
             }
             if((step) % n ==  0)
                 System.out.println(step*dt);
             step++;
         }
+    }
+
+    public void simulateEj1(int seconds, String fn) {
+
+        // long currentTime= System.currentTimeMillis();
+        // long end = currentTime + (seconds * 1000);
+
+        List<Boolean> first = new ArrayList<>();
+
+        for(Particle p : particles)
+            first.add(true);
+
+        int step = 1;
+        int n = 50000;
+        int printcsv = 10000;
+        int radius_sum = 0;
+
+        int escape_counter = 0;
+        OutputParser.parseEj1(0, 0, fn);
+        while((dt*step) < 6) {
+            int index = 0;
+            for(Particle p : particles) {
+                if(first.get(index)) {
+                    prevParticles.set(index, Euler.run(p, this));
+                    first.set(index, false);
+                }
+                Particle aux = particles.get(index);
+                Particle newParticle = Beeman.run(index, this);
+                if(newParticle.getX() > w || newParticle.getX() < 0 || newParticle.getY() > l){
+                    first.set(index, true);
+                    Particle ret = placeNewParticle(seconds);
+                    particles.set(index, ret);
+                    // reincerciones no deseadas
+                } else if(newParticle.y <= -l/10) {
+                    escape_counter++;
+                    first.set(index, true);
+                    Particle ret = placeNewParticle(seconds);
+                    particles.set(index, ret);
+                } else {
+                    particles.set(index, newParticle);
+                    prevParticles.set(index, aux);
+                }
+                index ++;
+            }
+            if(step % printcsv == 0){
+                OutputParser.parseEj1(step*dt, escape_counter, fn);
+                escape_counter = 0;
+            }
+            if((step) % n ==  0){
+                System.out.println(step*dt);
+            }
+            step++;
+        }
+    }
+
+    public void simulateEj2(int seconds, String fn) {
+
+        List<Boolean> first = new ArrayList<>();
+
+        for(Particle p : particles)
+            first.add(true);
+
+        int step = 1;
+        int n = 50000;
+        int printcsv = 1000;
+
+        double ke = 0;
+        OutputParser.parseEj2(0, 0, fn);
+        while((dt*step) < 6) {
+            int index = 0;
+            for(Particle p : particles) {
+                if(first.get(index)) {
+                    prevParticles.set(index, Euler.run(p, this));
+                    first.set(index, false);
+                }
+                Particle aux = particles.get(index);
+                Particle newParticle = Beeman.run(index, this);
+                if(newParticle.getX() > w || newParticle.getX() < 0 || newParticle.getY() > l){
+                    first.set(index, true);
+                    Particle ret = placeNewParticle(seconds);
+                    particles.set(index, ret);
+                    // reincerciones no deseadas
+                } else if(newParticle.y <= -l/10) {
+                    first.set(index, true);
+                    Particle ret = placeNewParticle(seconds);
+                    particles.set(index, ret);
+                } else {
+                    ke += calculateKE(newParticle);
+                    particles.set(index, newParticle);
+                    prevParticles.set(index, aux);
+                }
+                index ++;
+            }
+            if(step % printcsv == 0){
+                OutputParser.parseEj2(step*dt, ke, fn);
+            }
+            ke = 0;
+            if((step) % n ==  0){
+                System.out.println(step*dt);
+            }
+            step++;
+        }
+    }
+
+    private static double calculateKE(Particle p){
+        return 0.5 * p.mass * Math.pow(p.getVelocity(), 2);
     }
 
     public void populate(double seconds) {
@@ -106,7 +212,9 @@ public class Sylo {
         double y_high = l;
         double x_high = w;
         boolean first = true;
-        while((currentTime = System.currentTimeMillis()) < end) {
+        int i = 0;
+        // while((currentTime = System.currentTimeMillis()) < end) {
+        while(i < 300) {
 
             double rand_r = (Math.random() * (radiusHigh-radiusLow)) + radiusLow;
             double rand_x = Math.random() * x_high;
@@ -133,6 +241,7 @@ public class Sylo {
 
             if(first) {
                 particles.add(p);
+                i++;
                 first = false;
             } else {
                 boolean flag = true;
@@ -141,10 +250,11 @@ public class Sylo {
                         flag = false;
                     }
                 }
-                if(flag)
+                if(flag){
                     particles.add(p);
+                    i++;
+                }
             }
-            i++;            
         }
         for(Particle part : particles)
             prevParticles.add(Euler.run(part, this));
