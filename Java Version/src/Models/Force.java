@@ -29,7 +29,6 @@ public class Force {
         Pair<Pair<Double, Double>, Pair<Double, Double>> versors = p1.getVersors(p2);
         double Fn = calculateFn(p1, p2);
         double Ft = calculateFt(p1, p2);
-
         double fx = Fn * versors.first.first + Ft * versors.second.first;
         double fy = Fn * versors.first.second + Ft * versors.second.second;
 
@@ -57,7 +56,7 @@ public class Force {
         for (int i = 0; i < list.size(); i++) {
             Particle other = list.get(i);
             if(current.getOverlap(other) > 0){
-                if(index != i){
+                if(index != i && flag != 2){
                     forces = singleParticleContactForce(current, other);
                     Fx_tot += forces.first;
                     Fy_tot += forces.second;
@@ -65,7 +64,7 @@ public class Force {
             }
         }
 
-        if(current.x <= sylo.floor + current.radius || current.x >= sylo.w-sylo.floor-current.radius){
+        if(current.x <= sylo.floor || current.x >= sylo.w-sylo.floor){
             if(current.getOverlap(inf) > 0){
                 forces = singleParticleContactForce(current, inf);
                 Fx_tot += forces.first;

@@ -8,16 +8,16 @@ public class Main {
     static final double w = 0.4;
 
     public static void main(String[] args) {
-        // runUniverse();
+        runUniverse();
         // runEj1_2();
-        runEj3();
+        // runEj3();
         // runEj4();
     }
 
     public static void runUniverse(){
         double dt = (0.1 * Math.sqrt(m/kn));
         double d = 0.15;
-        Sylo sylo = new Sylo(l, w, d, dt, 2);
+        Sylo sylo = new Sylo(l, w,0, dt, 2);
         OutputParser.createCleanUniverseFile("XYZ/output.xyz");
         sylo.populate(0.005);
         sylo.simulateUniverse(50);
@@ -48,7 +48,7 @@ public class Main {
         double[] ds = {d1,d2,d3,d4};
         double dt = (0.1 * Math.sqrt(m/kn));
 
-        for (int i = 1; i < 5; i++) {
+        for (int i = 1; i < 2; i++) {
             String fn = "FilesEj2/OutputEj2_" + i + ".csv";
             Sylo sylo = new Sylo(l, w, ds[i-1], dt, 2);
             OutputParser.createCleanCSVFile(fn);
@@ -59,18 +59,19 @@ public class Main {
 
     public static void runEj4(){
         double dt = (0.1 * Math.sqrt(m/kn));
+        double ktm0 = 0.25;
         double ktm1 = 0.5;
         double ktm2 = 1;
         double ktm3 = 2;
         double ktm4 = 3;
-        double[] ktms = {ktm1,ktm2,ktm3,ktm4};
+        double[] ktms = {ktm0,ktm1,ktm2,ktm3,ktm4};
 
-        for (int i = 1; i < 5; i++) {
+        for (int i = 1; i < 6; i++) {
             String fn = "FilesEj4/OutputEj4_" + i + ".csv";
             Sylo sylo = new Sylo(l, w, 0, dt, ktms[i-1]);
             OutputParser.createCleanCSVFile(fn);
             sylo.populate(0.005);
-            sylo.simulateEj2(50, fn);
+            sylo.simulateEj4(50, fn);
         }
     }
     

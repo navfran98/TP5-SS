@@ -61,7 +61,7 @@ public class Sylo {
         int n = 50000;
         int tOutput = 1000;
 
-        while((dt*step) < 3) {
+        while((dt*step) < 5) {
             int index = 0;
             for(Particle p : particles) {
                 if(first.get(index)) {
@@ -197,6 +197,55 @@ public class Sylo {
         }
     }
 
+    public void simulateEj4(int seconds, String fn) {
+
+        List<Boolean> first = new ArrayList<>();
+
+        for(Particle p : particles)
+            first.add(true);
+
+        int step = 1;
+        int n = 50000;
+        int printcsv = 5000;
+
+        double ke = 0;
+        OutputParser.parseEj2(0, 0, fn);
+        while((dt*step) < 2) {
+            int index = 0;
+            for(Particle p : particles) {
+                if(first.get(index)) {
+                    prevParticles.set(index, Euler.run(p, this));
+                    first.set(index, false);
+                }
+                Particle aux = particles.get(index);
+                Particle newParticle = Beeman.run(index, this);
+                if(newParticle.getX() > w || newParticle.getX() < 0 || newParticle.getY() > l){
+                    particles.remove(index);
+                    prevParticles.remove(index);
+                    first.remove(index);
+                    // reincerciones no deseadas
+                } else if(newParticle.y <= -l/10) {
+                    first.set(index, true);
+                    Particle ret = placeNewParticle(seconds);
+                    particles.set(index, ret);
+                } else {
+                    ke += calculateKE(newParticle);
+                    particles.set(index, newParticle);
+                    prevParticles.set(index, aux);
+                }
+                index ++;
+            }
+            if(step % printcsv == 0){
+                OutputParser.parseEj2(step*dt, ke, fn);
+            }
+            ke = 0;
+            if((step) % n ==  0){
+                System.out.println(step*dt);
+            }
+            step++;
+        }
+    }
+
     private static double calculateKE(Particle p){
         return 0.5 * p.mass * Math.pow(p.getVelocity(), 2);
     }
@@ -214,7 +263,7 @@ public class Sylo {
         boolean first = true;
         int i = 0;
         // while((currentTime = System.currentTimeMillis()) < end) {
-        while(i < 300) {
+        while(i < 100) {
 
             double rand_r = (Math.random() * (radiusHigh-radiusLow)) + radiusLow;
             double rand_x = Math.random() * x_high;
