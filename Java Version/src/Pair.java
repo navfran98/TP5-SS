@@ -1,5 +1,3 @@
-package Models;
-
 public class Pair<U, V>
 {
     public final U first;       // the first field of a pair

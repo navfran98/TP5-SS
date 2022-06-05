@@ -1,12 +1,9 @@
-package Parsers;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import Models.*;
 import java.util.List;
 
 public class OutputParser {
@@ -19,19 +16,19 @@ public class OutputParser {
             StringBuilder dump = new StringBuilder(particles.size() + 6 + "\n" + "Time=" + t + "\n");
             for (Particle p : borders) {
                 dump.append(200).append(" ");
-                dump.append(p.getX()).append(" ")
-                        .append(p.getY()).append(" ")
+                dump.append(p.x).append(" ")
+                        .append(p.y).append(" ")
                         .append(0).append(" ")
-                        .append(p.getVelocity()).append(" ")
-                        .append(p.getRadius()).append("\n");
+                        .append(p.getV()).append(" ")
+                        .append(p.r).append("\n");
             }
             for (Particle p : particles) {
                 dump.append(200).append(" ");
-                dump.append(p.getX()).append(" ")
-                        .append(p.getY()).append(" ")
+                dump.append(p.x).append(" ")
+                        .append(p.y).append(" ")
                         .append(0).append(" ")
-                        .append(p.getVelocity()).append(" ")
-                        .append(p.getRadius()).append("\n");
+                        .append(p.getV()).append(" ")
+                        .append(p.r).append("\n");
             }
             appendToEndOfFile(fn,dump.toString());
         } catch (IOException e) {
@@ -55,7 +52,7 @@ public class OutputParser {
     //     }
     // }
 
-    public static void parseEj1(double dt, int count, String filename){
+    public static void parseEj1_2(double dt, int count, String filename){
         try {
             StringBuilder dump = new StringBuilder("");
             if(firstEj1 == true){
@@ -70,7 +67,7 @@ public class OutputParser {
         }
     }
 
-    public static void parseEj2(double dt, double ke, String filename){
+    public static void parseEj3_4(double dt, double ke, String filename){
         try {
             StringBuilder dump = new StringBuilder("");
             if(firstEj1 == true){
